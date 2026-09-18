@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}OMR Grader — Result{% endblock %}
+{% block content %}
+
+<a class="backlink" href="{{ url_for('index') }}">&larr; grade another sheet</a>
+
+<div class="card" style="margin-top:18px; text-align:center; padding:34px;">
+  <div class="muted" style="font-size:13px; letter-spacing:.06em; text-transform:uppercase;">Final Score</div>
+  <div style="font-size:54px; font-weight:800; margin:6px 0 2px;
+              color: {% if result.percentage >= 80 %}#35c37c{% elif result.percentage >= 50 %}#f2a33d{% else %}#ef5a5a{% endif %};">
+    {{ result.score }}/{{ result.total }}
+  </div>
+  <div class="muted">{{ result.percentage }}%</div>
+
+  <div style="display:flex; justify-content:center; gap:26px; margin-top:22px; flex-wrap:wrap;">
+    <div><div style="color:#35c37c; font-size:22px; font-weight:700;">{{ result.correct }}</div><div class="muted" style="font-size:12px;">correct</div></div>
+    <div><div style="color:#ef5a5a; font-size:22px; font-weight:700;">{{ result.wrong }}</div><div class="muted" style="font-size:12px;">wrong</div></div>
+    <div><div style="color:#7b828d; font-size:22px; font-weight:700;">{{ result.blank }}</div><div class="muted" style="font-size:12px;">blank</div></div>
+    <div><div style="color:#f2a33d; font-size:22px; font-weight:700;">{{ result.ambiguous }}</div><div class="muted" style="font-size:12px;">ambiguous</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Annotated sheet</h2>
+  <p class="muted" style="font-size:13px; margin-top:-6px;">
+    🟢 correct &nbsp; 🔴 wrong (🔵 correct option shown) &nbsp; 🟠 ambiguous &nbsp; ⚪ blank
+  </p>
+  <img src="{{ url_for('static', filename=graded_img) }}" style="width:100%; border-radius:10px; border:1px solid #2a2f3a;">
+</div>
+
+{% if corners_img %}
+<div class="card">
+  <h2>Pipeline stages</h2>
+  <div class="grid2">
+    <div>
+      <p class="muted" style="font-size:13px;">Detected sheet corners (original photo)</p>
+      <img src="{{ url_for('static', filename=corners_img) }}" style="width:100%; border-radius:10px; border:1px solid #2a2f3a;">
+    </div>
+    <div>
+      <p class="muted" style="font-size:13px;">Perspective-corrected (bird's-eye view)</p>
+      <img src="{{ url_for('static', filename=warped_img) }}" style="width:100%; border-radius:10px; border:1px solid #2a2f3a;">
+    </div>
+  </div>
+  <p class="muted" style="font-size:12.5px; margin-top:10px;">
+    Resolution: {{ info.resolution }} &rarr; warped to {{ info.warped_resolution }}
+  </p>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Question-by-question</h2>
+  <table style="width:100%; border-collapse:collapse; font-size:14px;">
+    <thead>
+      <tr style="text-align:left; color:#9aa1ad; font-size:12.5px; text-transform:uppercase;">
+        <th style="padding:8px 6px; border-bottom:1px solid #2a2f3a;">Q</th>
+        <th style="padding:8px 6px; border-bottom:1px solid #2a2f3a;">Marked</th>
+        <th style="padding:8px 6px; border-bottom:1px solid #2a2f3a;">Expected</th>
+        <th style="padding:8px 6px; border-bottom:1px solid #2a2f3a;">Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in result.detail %}
+      <tr>
+        <td style="padding:9px 6px; border-bottom:1px solid #1e222b;">{{ d.question }}</td>
+        <td style="padding:9px 6px; border-bottom:1px solid #1e222b;">{{ d.marked or "—" }}</td>
+        <td style="padding:9px 6px; border-bottom:1px solid #1e222b;">{{ d.expected }}</td>
+        <td style="padding:9px 6px; border-bottom:1px solid #1e222b;
+                   color: {% if d.verdict == 'correct' %}#35c37c{% elif d.verdict == 'wrong' %}#ef5a5a{% elif d.verdict == 'ambiguous' %}#f2a33d{% else %}#7b828d{% endif %};
+                   font-weight:600; text-transform:capitalize;">
+          {{ d.verdict }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

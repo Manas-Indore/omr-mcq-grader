@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}OMR Grader — Upload{% endblock %}
+{% block content %}
+
+<form class="card" action="{{ url_for('grade_route') }}" method="post" enctype="multipart/form-data" id="gradeForm">
+
+  <h2>1. Upload a sheet photo</h2>
+  <label class="dropzone" id="dropzone" for="photoInput">
+    <div id="dzText">📎 Click to choose a photo, or drag one here<br>
+      <span class="muted" style="font-size:12.5px">PNG or JPG · a tilted phone photo works fine</span>
+    </div>
+    <div class="fname" id="fname"></div>
+    <input type="file" name="photo" id="photoInput" accept=".png,.jpg,.jpeg" required>
+  </label>
+
+  <h2 style="margin-top:30px;">2. Answer key</h2>
+  <label for="key">Correct options, comma-separated (A–E per question)</label>
+  <input type="text" name="key" id="key" value="{{ default_key }}">
+
+  <div class="grid2">
+    <div>
+      <label for="choices">Options per question</label>
+      <select name="choices" id="choices">
+        <option value="4">4 (A–D)</option>
+        <option value="5" selected>5 (A–E)</option>
+      </select>
+    </div>
+    <div>
+      <label for="threshold">Binarisation method</label>
+      <select name="threshold" id="threshold">
+        <option value="adaptive" selected>Adaptive threshold</option>
+        <option value="otsu">Otsu threshold</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div>
+      <label for="fill">Fill threshold (min. ink ratio)</label>
+      <input type="number" name="fill" id="fill" value="0.55" step="0.05" min="0.1" max="0.95">
+    </div>
+    <div>
+      <label for="margin">Ambiguity margin</label>
+      <input type="number" name="margin" id="margin" value="0.20" step="0.05" min="0.0" max="0.5">
+    </div>
+  </div>
+
+  <div class="checkline">
+    <input type="checkbox" name="naive" id="naive">
+    <label for="naive" style="margin:0;">Naive mode — skip perspective correction (to demonstrate the failure case)</label>
+  </div>
+
+  <button class="primary" type="submit">Grade this sheet →</button>
+</form>
+
+<script>
+  const dz = document.getElementById('dropzone');
+  const input = document.getElementById('photoInput');
+  const fname = document.getElementById('fname');
+  const dzText = document.getElementById('dzText');
+
+  input.addEventListener('change', () => {
+    if (input.files.length) {
+      fname.textContent = "✓ " + input.files[0].name;
+      dzText.style.display = 'none';
+    }
+  });
+
+  ['dragenter','dragover'].forEach(evt =>
+    dz.addEventListener(evt, e => { e.preventDefault(); dz.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(evt =>
+    dz.addEventListener(evt, e => { e.preventDefault(); dz.classList.remove('drag'); }));
+
+  dz.addEventListener('drop', e => {
+    if (e.dataTransfer.files.length) {
+      input.files = e.dataTransfer.files;
+      fname.textContent = "✓ " + input.files[0].name;
+      dzText.style.display = 'none';
+    }
+  });
+</script>
+
+{% endblock %}
